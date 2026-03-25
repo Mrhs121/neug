@@ -52,20 +52,6 @@ void Table::initColumns(const std::vector<std::string>& col_name,
   columns_.resize(col_id_map_.size());
 }
 
-void Table::init(const std::string& name, const std::string& work_dir,
-                 const std::vector<std::string>& col_name,
-                 const std::vector<DataType>& property_types,
-                 const std::vector<StorageStrategy>& strategies_) {
-  name_ = name;
-  work_dir_ = work_dir;
-  initColumns(col_name, property_types, strategies_);
-  for (size_t i = 0; i < columns_.size(); ++i) {
-    columns_[i]->open(name + ".col_" + std::to_string(i), "", work_dir);
-  }
-  touched_ = true;
-  buildColumnPtrs();
-}
-
 void Table::open(const std::string& name, const std::string& work_dir,
                  const std::vector<std::string>& col_name,
                  const std::vector<DataType>& property_types,
@@ -114,17 +100,6 @@ void Table::open_with_hugepages(const std::string& name,
   }
   touched_ = true;
   buildColumnPtrs();
-}
-
-void Table::copy_to_tmp(const std::string& name,
-                        const std::string& snapshot_dir,
-                        const std::string& work_dir) {
-  int i = 0;
-  for (auto& col : columns_) {
-    col->copy_to_tmp(snapshot_dir + "/" + name + ".col_" + std::to_string(i),
-                     work_dir + "/" + name + ".col_" + std::to_string(i));
-    ++i;
-  }
 }
 
 void Table::dump(const std::string& name, const std::string& snapshot_dir) {
@@ -379,5 +354,13 @@ void Table::drop() {
 void Table::set_name(const std::string& name) { name_ = name; }
 
 void Table::set_work_dir(const std::string& work_dir) { work_dir_ = work_dir; }
+
+void Table::ensure_writable(size_t col_id) {
+  if (col_id >= columns_.size()) {
+    THROW_INVALID_ARGUMENT_EXCEPTION("Column id out of range: " +
+                                     std::to_string(col_id));
+  }
+  columns_[col_id]->ensure_writable(work_dir_);
+}
 
 }  // namespace neug

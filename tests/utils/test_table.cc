@@ -87,11 +87,11 @@ TEST(TableTest, TestTableBasic) {
   std::vector<StorageStrategy> none_strategies(col_name.size(),
                                                StorageStrategy::kNone);
 
-  disk_table.init("test_dist", TEST_DIR, col_name, property_types,
+  disk_table.open("test_dist", TEST_DIR, col_name, property_types,
                   disk_strategies);
-  mem_table.init("test_dist", TEST_DIR, col_name, property_types,
+  mem_table.open("test_dist", TEST_DIR, col_name, property_types,
                  mem_strategies);
-  none_table.init("test_dist", TEST_DIR, col_name, property_types,
+  none_table.open("test_dist", TEST_DIR, col_name, property_types,
                   none_strategies);
 
   disk_table.resize(10);
@@ -311,8 +311,6 @@ TEST(TableTest, TestTableBasic) {
   EXPECT_EQ(disk_table.get_column_id_by_name("renamed_bool_column"), 0);
   disk_table.delete_column("renamed_bool_column");
   EXPECT_EQ(disk_table.col_num(), 10);
-  disk_table.copy_to_tmp("disk_table", std::string(TEST_DIR) + "/checkpoint",
-                         std::string(TEST_DIR));
   disk_table.set_work_dir(std::string(TEST_DIR));
   disk_table.drop();
 
@@ -340,7 +338,7 @@ TEST(TableTest, StringColumnDistinguishesUnsetFromEmptyString) {
   std::vector<StorageStrategy> mem_strategies(col_name.size(),
                                               StorageStrategy::kMem);
 
-  table.init("test_string_validity", TEST_DIR, col_name, property_types,
+  table.open("test_string_validity", TEST_DIR, col_name, property_types,
              mem_strategies);
   table.resize(2, {Property::from_string_view("default_value")});
 
